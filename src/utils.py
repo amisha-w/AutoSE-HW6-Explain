@@ -109,6 +109,13 @@ def kap(t, fun):
         u[k or len(u)] = v
     return u
 
+def dict_kap(t, fun):
+    u = {}
+    for k,v in t.items():
+        v, k = fun(k,v)
+        u[k or len(u)] = v
+    return u
+
 def cosine(a,b,c):
     den = 1 if c == 0 else 2*c
     x1 = (a**2 + c**2 - b**2) / den
@@ -220,9 +227,9 @@ def firstN(sortedRanges,scoreFun):
     sortedRanges = [x for x in sortedRanges if useful(x)]
     most,out = -1, -1
     for n in range(1,len(sortedRanges)+1):
-        slice = sortedRanges[0:n]
-        slice_range = [x['range'] for x in slice]
-        tmp,rule = scoreFun(slice_range)
+        temp = sortedRanges[0:n]
+        t_range = [x['range'] for x in temp]
+        tmp,rule = scoreFun(t_range)
         if tmp and tmp > most:
             out,most = rule,tmp
     return out,most
@@ -236,10 +243,3 @@ def prune(rule, maxSize):
             rule[txt] = None
     if n > 0:
         return rule
-
-def dkap(t, fun):
-    u = {}
-    for k,v in t.items():
-        v, k = fun(k,v)
-        u[k or len(u)] = v
-    return u

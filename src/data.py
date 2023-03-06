@@ -170,7 +170,7 @@ class DATA:
                 t.append({'lo': left['lo'], 'hi': left['hi']})
                 j = j + 1
             return t if len(t0)==len(t) else merge(t)
-        return dkap(rule, merges)
+        return dict_kap(rule, merges)
 
     def xpln(self, best, rest):
         tmp, maxSizes = [], {}        
