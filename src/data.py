@@ -1,54 +1,69 @@
 from row import *
+import sys
+sys.path.append("../src")
 from cols import *
 from utils import *
-from operator import itemgetter
-
 
 class DATA:
     def __init__(self, src):
         self.rows = []
         self.cols = None
-        if isinstance(src, str):
+        
+        if type(src) == str:
             csv(src, self.add)
         else:
-            for row in src:
-                self.add(row)
+            for t in src:
+                self.add(t)
 
     def add(self, t):
+        '''
+        Adds row
+        '''
         if self.cols:
-            t = Row(t) if type(t) == list else t
+            if type(t) == list:
+                t = Row(t)
             self.rows.append(t)
             self.cols.add(t)
         else:
             self.cols = Col(t)
 
-    def stats(self, what, cols, nPlaces):
-        def fun(_, col):
-            if what == 'div':
-                val = col.div()
-            else:
-                val = col.mid()
-            return col.rnd(val, nPlaces), col.txt
-
-        return kap(cols or self.cols.y, fun)
-
-    def dist(self, row1, row2, cols=None):
-        n, d = 0, 0
-        for col in cols or self.cols.x:
-            n = n + 1
-            d = d + col.dist(row1.cells[col.at], row2.cells[col.at]) ** options['p']
-        return (d / n) ** (1 / options['p'])
-
     def clone(self, init={}):
+        '''
+        Returns clone of data
+        '''
         data = DATA([self.cols.names])
         _ = list(map(data.add, init))
         return data
 
-    def around(self, row1, rows=None, cols=None):
-        def function(row2):
-            return {'row': row2, 'dist': self.dist(row1, row2, cols)}
+    def stats(self, what, cols, nPlaces):
+            def fun(_, col):
+                if what == 'mid':
+                    val = col.mid()
+                else:
+                    val = col.div()
+                return col.rnd(val, nPlaces), col.txt
 
-        return sorted(list(map(function, rows or self.rows)), key=itemgetter('dist'))
+            return kap(cols or self.cols.y, fun)
+
+    def dist(self, row1, row2, cols=None):
+        n, d = 0, 0
+        c = cols or self.cols.x
+
+        for col in c:
+            n += 1
+            d += col.dist(row1.cells[col.at], row2.cells[col.at]) ** options['p']
+
+        return (d/n) ** (1 / options['p'])
+
+    def around(self, row1, rows=None, cols=None):
+
+        if rows is None: rows = self.rows
+
+        def function(row2):
+            return {"row": row2, "dist": self.dist(row1, row2, cols)}
+
+        mapped = map(function, rows)
+        return sorted(mapped, key=lambda x: x["dist"])
 
     def half(self, rows=None, cols=None, above=None):
         def gap(row1, row2):
@@ -56,21 +71,20 @@ class DATA:
 
         def project(row):
             return {'row': row, 'dist': cosine(gap(row, A), gap(row, B), c)}
+        
+        def function(r):
+            return {'row': r, 'dist': gap(r, A)}
 
         rows = rows or self.rows
         some = many(rows, options['Halves'])
         A = above if above and options['Reuse'] else any(some)
-
-        def function(r):
-            return {'row': r, 'dist': gap(r, A)}
-
         tmp = sorted(list(map(function, some)), key=itemgetter('dist'))
-        far = tmp[int(options['Far'] * len(rows)) // 1]
+        far = tmp[int(options['Far']*len(rows))//1]
         B = far['row']
         c = far['dist']
         left, right = [], []
         for n, tmp in enumerate(sorted(list(map(project, rows)), key=itemgetter('dist'))):
-            if n < len(rows) // 2:
+            if n < len(rows)//2:
                 left.append(tmp['row'])
             else:
                 right.append(tmp['row'])
@@ -79,9 +93,10 @@ class DATA:
 
     def cluster(self, rows=None, min=None, cols=None, above=None):
         rows = rows or self.rows
-        min = min or len(rows) ** options['min']
+        min = min or (len(rows) ** options['min'])
         cols = cols or self.cols.x
         node = {'data': self.clone(rows)}
+
         if len(rows) >= 2 * min:
             left, right, node['A'], node['B'], node['mid'], _ = self.half(rows, cols, above)
             node['left'] = self.cluster(left, min, cols, node['A'])
@@ -93,8 +108,8 @@ class DATA:
         for col in ys:
             x = col.norm(row1.cells[col.at])
             y = col.norm(row2.cells[col.at])
-            s1 = s1 - math.exp(col.w * (x - y) / len(ys))
-            s2 = s2 - math.exp(col.w * (y - x) / len(ys))
+            s1 -= math.exp(col.w*(x-y)/len(ys))
+            s2 -= math.exp(col.w*(y-x)/len(ys))
         return s1 / len(ys) < s2 / len(ys)
 
     def tree(self, rows=None, min=None, cols=None, above=None):
@@ -122,23 +137,10 @@ class DATA:
                 return worker(l,worse,evals+evals0,A)
         best,rest,evals = worker(data.rows,[],0)
         return self.clone(best), self.clone(rest), evals
-
-    # def sway(self):
-    #     data = self
-    #
-    #     def worker(rows, worse, evals0=None, above=None):
-    #         if len(rows) <= len(data.rows) ** options['min']:
-    #             return rows, many(worse, options['rest'] * len(rows)), evals0
-    #         else:
-    #             l, r, A, B, c, evals = self.half(rows, None, above)
-    #             if self.better(B, A):
-    #                 l, r, A, B = r, l, B, A
-    #             for row in r:
-    #                 worse.append(row)
-    #             return worker(l, worse, evals + evals0, A)
-    #
-    #     best, rest, evals = worker(data.rows, [], 0)
-    #     return self.clone(best), self.clone(rest), evals
+    
+    def betters(self, n):
+        tmp = sorted(self.rows, key=lambda row: self.better(row, self.rows[self.rows.index(row) - 1]))
+        return n and tmp[0:n], tmp[n + 1:] or tmp
 
     def RULE(self, ranges, maxSize):
         t = {}
@@ -150,6 +152,9 @@ class DATA:
     def showRule(self, rule):
         def pretty(range):
             return range['lo'] if range['lo'] == range['hi'] else [range['lo'], range['hi']]
+        
+        def merges(attr, ranges):
+            return list(map(pretty, merge(sorted(ranges, key=itemgetter('lo'))))), attr
 
         def merge(t0):
             t, j = [], 1
@@ -164,16 +169,11 @@ class DATA:
                     j = j + 1
                 t.append({'lo': left['lo'], 'hi': left['hi']})
                 j = j + 1
-            return t if len(t0) == len(t) else merge(t)
-
-        def merges(attr, ranges):
-            return list(map(pretty, merge(sorted(ranges, key=itemgetter('lo'))))), attr
-
+            return t if len(t0)==len(t) else merge(t)
         return dkap(rule, merges)
 
     def xpln(self, best, rest):
-        tmp, maxSizes = [], {}
-
+        tmp, maxSizes = [], {}        
         def v(has):
             return value(has, len(best.rows), len(rest.rows), "best")
 
@@ -185,8 +185,7 @@ class DATA:
                 restr = self.selects(rule, rest.rows)
                 if len(bestr) + len(restr) > 0:
                     return v({'best': len(bestr), 'rest': len(restr)}), rule
-
-        for ranges in bins(self.cols.x, {'best': best.rows, 'rest': rest.rows}):
+        for ranges in bins(self.cols.x,{'best': best.rows, 'rest': rest.rows}):
             maxSizes[ranges[0]['txt']] = len(ranges)
             print("")
             for range in ranges:
@@ -195,31 +194,24 @@ class DATA:
         rule, most = firstN(sorted(tmp, key=itemgetter('val')), score)
         return rule, most
 
-    def betters(self, n):
-        tmp = sorted(self.rows, key=lambda row: self.better(row, self.rows[self.rows.index(row) - 1]))
-        return n and tmp[0:n], tmp[n + 1:] or tmp
-
     def selects(self, rule, rows):
         def disjunction(ranges, row):
             for range in ranges:
                 lo, hi, at = range['lo'], range['hi'], range['at']
                 x = row.cells[at]
-                if x == "?":
+                if x=="?":
                     return True
-                if lo == hi and lo == x:
+                if lo==hi and lo==x:
                     return True
-                if lo <= x and x < hi:
+                if lo<=x and x<hi:
                     return True
             return False
-
         def conjunction(row):
             for ranges in rule.values():
                 if not disjunction(ranges, row):
                     return False
             return True
-
         def function(r):
             if conjunction(r):
                 return r
-
         return list(map(function, rows))
