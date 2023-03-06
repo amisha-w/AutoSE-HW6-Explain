@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("./src")
+sys.path.append("../src")
 
 from main import *
 from utils import *
@@ -114,7 +114,7 @@ def test_tree():
 
 def test_sway():
     data = DATA(options['file'])
-    best,rest = data.sway()
+    best,rest,evals = data.sway()
     print("\nall ", data.stats('mid', data.cols.y, 2))
     print("    ", data.stats('div', data.cols.y, 2))
     print("\nbest",best.stats('mid', best.cols.y, 2))
@@ -125,7 +125,7 @@ def test_sway():
 def test_bins():
     global b4
     data = DATA(options['file'])
-    best,rest = data.sway()
+    best,rest,evals = data.sway()
     print("all","","","",{'best':len(best.rows), 'rest':len(rest.rows)})
     for k,t in enumerate(bins(data.cols.x,{'best':best.rows, 'rest':rest.rows})):
         for range in t:
@@ -137,7 +137,7 @@ def test_bins():
             range['y'].has)
 
 def test_xpln():
-    data = DATA(the['file'])
+    data = DATA(options['file'])
     best,rest,evals = data.sway()
     rule,most= data.xpln(best,rest)
     print("\n-----------\nexplain=", data.showRule(rule))
