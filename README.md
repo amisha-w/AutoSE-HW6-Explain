@@ -3,12 +3,11 @@
  
  # `Lua to Python - AutoSE HW6 - Explain`
 
-[//]: # ([![DOI]&#40;https://zenodo.org/badge/DOI/10.5281/zenodo.7677645.svg&#41;]&#40;https://doi.org/10.5281/zenodo.7677645&#41;)
-
-[//]: # (![license]&#40;https://img.shields.io/github/license/amisha-w/AutoSE-HW5-Bins&#41;)
-![Repo Size](https://img.shields.io/github/repo-size/amisha-w/AutoSE-HW5-Bins)
-
-[//]: # ([![codecov]&#40;https://codecov.io/gh/amisha-w/AutoSE-HW5-Bins/branch/main/graph/badge.svg?token=&#41;]&#40;https://codecov.io/gh/amisha-w/AutoSE-HW5-Bins&#41;<br/>)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7703078.svg)](https://doi.org/10.5281/zenodo.7703078)
+![license](https://img.shields.io/github/license/amisha-w/AutoSE-HW6-Explain)
+![Repo Size](https://img.shields.io/github/repo-size/amisha-w/AutoSE-HW6-Explain)
+[![codecov](https://codecov.io/gh/amisha-w/AutoSE-HW6-Explain/branch/main/graph/badge.svg?token=)](https://codecov.io/gh/amisha-w/AutoSE-HW5-Bins)<br/>
+![Test Cases](https://img.shields.io/github/actions/workflow/status/amisha-w/AutoSE-HW6-Explain/tests.yml?label=Test%20Cases)
 ![Issues](https://img.shields.io/github/issues-closed-raw/amisha-w/AutoSE-HW6-Explain?color=yellow)
 ![Release](https://img.shields.io/github/v/release/amisha-w/AutoSE-HW6-Explain?color=green)
 ![Contributors](https://img.shields.io/github/contributors/amisha-w/AutoSE-HW6-Explain?color=cyan)
